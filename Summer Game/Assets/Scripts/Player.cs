@@ -4,58 +4,38 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private Rigidbody2D rigidBody;
-    private float moveTime = 10f;
-    private bool AllowedMovement = true;
+    public float moveSpeed = 10f;
+    public LayerMask WhatStopsMovement;
+    private Vector3 end;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        rigidBody = GetComponent<Rigidbody2D>();
+        end = transform.position;
     }
 
     // Update is called once per frame
     void Update()
-    {
-    if (AllowedMovement == true){    
-        if (Input.GetKeyDown(KeyCode.UpArrow)){
-            int xDir = 0;
-            int yDir = 1;
-            StartCoroutine(Movement(xDir, yDir));
-        }
-        else if (Input.GetKeyDown(KeyCode.DownArrow)){
-            int xDir = 0;
-            int yDir = -1;
-            StartCoroutine(Movement(xDir, yDir));
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow)){
-            int xDir = -1;
-            int yDir = 0;
-            StartCoroutine(Movement(xDir, yDir));
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow)){
-            int xDir = 1;
-            int yDir = 0;
-            StartCoroutine(Movement(xDir, yDir));
-        }
-    }
-    }
-
-    IEnumerator Movement (int xDir, int yDir)
-    {
-        AllowedMovement = false;
+    {   
+        walk();
         
-        Vector2 currentPosition = transform.position;
-        Vector3 end = currentPosition + new Vector2(xDir, yDir);
+    }
 
-        float RemainingDistance = (transform.position - end).sqrMagnitude;
-        while(RemainingDistance > float.Epsilon)
+    void walk()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, end, moveSpeed * Time.deltaTime);
+        if (Vector3.Distance(transform.position, end) <= 0.0f) 
         {
-            rigidBody.MovePosition (Vector3.MoveTowards(rigidBody.position, end, moveTime * Time.deltaTime));
-            RemainingDistance = (transform.position - end).sqrMagnitude;
-            yield return null;
+            if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) == 1f && !Physics2D.OverlapCircle(transform.position + new Vector3(Input.GetAxisRaw("Horizontal"), 0, 0), 0.2f, WhatStopsMovement)) 
+            {
+                end += new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, 0.0f);
+            }
+            else if (Mathf.Abs(Input.GetAxisRaw("Vertical")) == 1f && !Physics2D.OverlapCircle(transform.position + new Vector3(0, Input.GetAxisRaw("Vertical"), 0), 0.2f, WhatStopsMovement)) 
+            {
+                end += new Vector3(0.0f, Input.GetAxisRaw("Vertical"), 0.0f);
+            }
         }
-        
-        AllowedMovement = true;
     }
+    
 }
